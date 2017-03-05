@@ -6,7 +6,7 @@
 
 * Creation Date : 02-03-2017
 
-* Last Modified : Σαβ 04 Μάρ 2017 09:22:58 μμ EET
+* Last Modified : Κυρ 05 Μάρ 2017 07:34:01 μμ EET
 
 * Created By : Stamatios Anoustis 
 
@@ -238,72 +238,86 @@ bool isInMinHeap(struct MinHeap *minHeap, int vertex) {
 
 }
 
-// A utility function to find the minimum distance value, from the set 
-// of vertices not yet included in shortest path tree
-int minDistance (int dist[], bool sptset[], int V) {
+// A utility function used to print the solution
+void printArr(int dist[], int n) {
+    
+  printf("Vertex   Distance from Source\n");
+  for (int i = 0; i < n; ++i) {
 
-  // Initialise min value
-  int min = INT_MAX;
-  int min_index;
-  for (int v = 0; v < V; v++) {
-
-    if (sptSet[v] == false && dist[v] < min) {
-
-      min = dist[v];
-      min_index = v;
-
-    }
+    printf("%d \t\t %d\n", i, dist[i]);
 
   }
-  
-  return min_index;
 
 }
 
 // Function that implements Dijkstra's single source shortest path
-// algorithm when graph is represented as adjacency matrix
-void dijkstra ( struct Graph* graph, int V,int src) {
+// algorithm when graph is represented as adjacency list.It is a 
+// O(E*logV) function 
+void dijkstra ( struct Graph* graph, int src) {
 
+  int V = graph->V;
   int dist[V];  // The output array.dist[i] will hold the shortest 
                 // distance from sorce to i.
-  bool sptSet[V]; // sptSet[i] will be  true if vertex i is included
-                  // in SPT tree or sorest dstance from src to i finalised
-  //Initialise all shortest distances to INFIITY and sptet to false
-  for ( int i = 0; i < V; i++){
+  // min heap represents the set Q
+  struct MinHeap* minHeap = newMinHeap(V);
+  // Initialize min heap with all vertices. dist value of all vertices
+  for ( int v = 0; v < V; v++){
 
-    dist[i] = INT_MAX;
-    sptSet[i] = false;
+    dist[v] = INT_MAX;
+    minHeap->array[v] = newMinHeapNode(v, dist[v]);
+    minHeap->position[v] = v;
+
+  }
+  
+  // Make dist value of src vertex as 0 so that it is extracted first
+  minHeap->array[src] = newMinHeapNode( src, dist[src]);
+  minHeap->position[src] = src;
+  dist[src] = 0;
+  decreaseKey(minHeap, src, dist[src]);
+  // Initially size of min heap is equal to V
+  minHeap->size = V;
+  // In the following loop min heap contains all vertices whose shortest distances 
+  // no yet finished
+  while (!isEmpty(minHeap)) {
+
+    //Extract the vertex with minimum distance value
+    struct MinHeapNode* minHeapNode = extractMin(minHeap);
+    int u = minHeapNode->vertex;  //store the extracted vertex number
+    //Traverse through all adjacent vertices of u and update their distance values
+    struct AdjListNode* pCrawl = graph->array[u].head;
+    while (pCrawl != NULL) {
+
+      int v = pCrawl->dest;
+    // If shortest distance to v is not finalized yet, and distance to v
+    // through u is less than its previously calculated distance
+      if ( isInMinHeap(minHeap, v) && dist[v] != INT_MAX 
+	                           && dist[u] + pCrawl->weight < dist[v]) {
+      
+        dist[v] = dist[u] + pCrawl->weight;
+        decreaseKey(minHeap, v, dist[v]);
+
+      }
+
+      pCrawl = pCrawl->next;
+
+    }
 
   }
 
-  // Set src ditance to zero
-  dist[src] = 0;
-  // Find the shortest paths for all vertices
-  for (int count = 0; count < V - 1; count++) {
+  printArr(dist, V);
 
-    // Pick the minimum distance vertex from the set of vertices not yet
-    // processed .u is always equal to src in first iteraton.
-    int u = minDistance(dist, sptSet);
-    // Mark the picked vertex as processed
-    sptSet[u] = true;
-    // Update the dist values of the picked vertices
-    for ( int v = 0; v < V; v++) {
-
-      // Update dist[v] only if is no in sptSet, there is an edge from u to
-      // v and the total weight of the path from src to v through u is smaller
-      // than the curren value of dist[v].   
+}  
   
     
 
 int main ( int argc, char** argv) {
 
-  int N;  //number of cities;suppose 3 <= K <= N <= 60000
-  int K;  //number of presidential stations
+/*  int N;  //number of cities;suppose 3 <= K <= N <= 60000
   int M;  //number of bidirectional roads N - 1 <= M <= 300000
   int A;  //the index of teleportable planet
   int B;  //the index of the one connected planet
   int T;  //the index of the other connected planet
-  int K;
+  int K;  //number of presidential stations
   int c_temp;
   int u;
   int v;
@@ -330,8 +344,26 @@ int main ( int argc, char** argv) {
     scanf( "%d", &d_uv);
     addEdge(city_map, u, v, d_uv);
 
-  }
-
+  } */
+  
+   // create the graph given in above fugure
+    int V = 9;
+    struct Graph* graph = newGraph(V);
+    addEdge(graph, 0, 1, 4);
+    addEdge(graph, 0, 7, 8);
+    addEdge(graph, 1, 2, 8);
+    addEdge(graph, 1, 7, 11);
+    addEdge(graph, 2, 3, 7);
+    addEdge(graph, 2, 8, 2);
+    addEdge(graph, 2, 5, 4);
+    addEdge(graph, 3, 4, 9);
+    addEdge(graph, 3, 5, 14);
+    addEdge(graph, 4, 5, 10);
+    addEdge(graph, 5, 6, 2);
+    addEdge(graph, 6, 7, 1);
+    addEdge(graph, 6, 8, 6);
+    addEdge(graph, 7, 8, 7);
+  dijkstra(graph, 0);
   return 0;
 
 }

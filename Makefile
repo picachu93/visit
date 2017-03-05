@@ -6,4 +6,4 @@ visit: visit.o
 visit.o: visit.c
 	$(CC) $(CFLAGS) -c visit.c
 clean: 
-$(RM) $(all)
+	$(RM) $(all)
